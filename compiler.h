@@ -5,16 +5,21 @@
 #ifndef TOUCHSTONE_COMPILER_H
 #define TOUCHSTONE_COMPILER_H
 
-enum {
+#include "db.h"
+#include "repl.h"
+
+typedef enum {
     COMMAND_SUCCESS,
     COMMAND_ERROR_NOT_FOUND
-};
+} CommandResult;
 
-enum {
+typedef enum {
     PREPARE_SUCCESS,
-    PREPARE_ERROR_NOT_FOUND
-};
+    PREPARE_ERROR_NOT_FOUND,
+    PREPARE_ERROR_SYNTAX,
+    PREPARE_ERROR_OUT_OF_BOUNDS
+} PrepareResult;
 
-int prepare_statement(InputBuffer *input, Statement *statement);
+PrepareResult prepare_statement(InputBuffer *input, Statement *statement);
 
 #endif //TOUCHSTONE_COMPILER_H

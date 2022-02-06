@@ -7,7 +7,11 @@
 #include "repl.h"
 
 InputBuffer *new_input_buffer() {
-    return malloc(sizeof(InputBuffer));
+    InputBuffer *input_buffer = malloc(sizeof(InputBuffer));
+    input_buffer->buffer = NULL;
+    input_buffer->buffer_len = 0;
+    input_buffer->input_len = 0;
+    return input_buffer;
 }
 
 void debug_input(InputBuffer *input) {

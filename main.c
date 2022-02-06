@@ -1,14 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "repl.h"
-#include "vm.h"
 #include "compiler.h"
+#include "repl.h"
 
 
-int execute_command(InputBuffer *input) {
+CommandResult execute_command(InputBuffer *input, Table *table) {
     if (strcmp(input->buffer, ".exit") == 0) {
-        debug_input(input);
         close_input(input);
+        close_db(table);
         printf("Goodbye\n");
         exit(EXIT_SUCCESS);
     } else if (strcmp(input->buffer, ".version") == 0) {
@@ -20,18 +19,14 @@ int execute_command(InputBuffer *input) {
     }
 }
 
-void execute_statement(Statement *statement) {
-   if (statement->type == STATEMENT_INSERT) {
-       printf("EXECUTING INSERT\n");
-       return;
-   }
-    if (statement->type == STATEMENT_SELECT) {
-        printf("EXECUTING SELECT\n");
-        return;
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        printf("Error: DB filename required\n");
+        exit(EXIT_FAILURE);
     }
-}
 
-int main() {
+    char *filename = argv[1];
+    Table *table = open_db(filename);
     InputBuffer *input = new_input_buffer();
 
     while (1) {
@@ -39,21 +34,39 @@ int main() {
         read_input(input);
 
         if (input->buffer[0] == '.') {
-            if (execute_command(input)) {
-                debug_input(input);
-                printf("Unrecognized command '%s'.\n", input->buffer);
+            switch (execute_command(input, table)) {
+                case COMMAND_SUCCESS:
+                    break;
+                case COMMAND_ERROR_NOT_FOUND:
+                    debug_input(input);
+                    printf("Unrecognized command '%s'.\n", input->buffer);
+                    break;
             }
-
             continue;
         }
 
         Statement statement;
-        if (prepare_statement(input, &statement)) {
-            printf("Unrecognized keyword '%s'\n", input->buffer);
-            continue;
+        switch (prepare_statement(input, &statement)) {
+            case PREPARE_SUCCESS:
+                break;
+            case PREPARE_ERROR_NOT_FOUND:
+                printf("Error: Unrecognized keyword '%s'\n", input->buffer);
+                continue;
+            case PREPARE_ERROR_SYNTAX:
+                printf("Error: Syntax error: '%s'\n", input->buffer);
+                continue;
+            case PREPARE_ERROR_OUT_OF_BOUNDS:
+                printf("Error: Argument out of bounds: '%s'\n", input->buffer);
+                break;
         }
 
-        execute_statement(&statement);
-        printf("Done\n");
+        switch (execute_statement(&statement, table)) {
+            case EXECUTE_SUCCESS:
+                printf("Done\n");
+                break;
+            case EXECUTE_ERROR_TABLE_FULL:
+                printf("Error: Table full\n");
+                break;
+        }
     }
 }
