@@ -13,6 +13,14 @@ CommandResult execute_command(InputBuffer *input, Table *table) {
     } else if (strcmp(input->buffer, ".version") == 0) {
         printf("Touchstone v0.1\n");
         return COMMAND_SUCCESS;
+    } else if (strcmp(input->buffer, ".constants") == 0) {
+        printf("Constants:\n");
+        print_constants();
+        return COMMAND_SUCCESS;
+    } else if (strcmp(input->buffer, ".print_btree") == 0) {
+        printf("Tree:\n");
+        print_leaf_node(get_page(table->pager, 0));
+        return COMMAND_SUCCESS;
     } else {
         debug_input(input);
         return COMMAND_ERROR_NOT_FOUND;

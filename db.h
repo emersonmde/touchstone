@@ -28,6 +28,7 @@ typedef enum {
 typedef struct {
     int fd;
     uint32_t file_len;
+    uint32_t num_pages;
     void *pages[TABLE_MAX_PAGES];
 } Pager;
 
@@ -40,7 +41,7 @@ typedef struct {
 typedef struct {
 //    void *pages[TABLE_MAX_PAGES];
     Pager *pager;
-    uint32_t num_rows;
+    uint32_t root_page_num;
 } Table;
 
 typedef struct {
@@ -50,14 +51,23 @@ typedef struct {
 
 typedef struct {
     Table *table;
-    uint32_t row_num;
+    uint32_t page_num;
+    uint32_t cell_num;
     bool end_of_table;
 } Cursor;
 
+typedef enum {
+    INTERNAL_NODE,
+    LEAF_NODE
+} NodeType;
+
+void print_constants();
+void print_leaf_node(void *node);
+void print_row(Row *row);
+
 void serialize_row(Row *source, void *destination);
 void deserialize_row(void *source, Row *destination);
-
-void print_row(Row *row);
+void *get_page(Pager *pager, uint32_t page_num);
 
 ExecuteResult execute_statement(Statement *statement, Table *table);
 ExecuteResult execute_insert(Statement *statement, Table *table);
@@ -66,11 +76,20 @@ ExecuteResult execute_select(Statement *statement, Table *table);
 Table *open_db(const char *filename);
 void close_db(Table *table);
 
-void pager_flush(Pager *pager, uint32_t page_num, const uint32_t size);
+void pager_flush(Pager *pager, uint32_t page_num);
 
 Cursor *table_start(Table *table);
 Cursor *table_end(Table *table);
 void *cursor_ptr(Cursor *cursor);
 void cursor_advance(Cursor *cursor);
+
+// btree
+uint32_t *leaf_node_num_cells(void *node);
+void *leaf_node_cell(void *node, uint32_t cell_num);
+uint32_t *leaf_node_key(void *node, uint32_t cell_num);
+void *leaf_node_value(void *node, uint32_t cell_num);
+void initialize_leaf_node(void *node);
+void leaf_node_insert(Cursor *cursor, uint32_t key, Row *value);
+
 
 #endif //TOUCHSTONE_DB_H
