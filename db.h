@@ -22,7 +22,8 @@ typedef enum {
 
 typedef enum {
     EXECUTE_SUCCESS,
-    EXECUTE_ERROR_TABLE_FULL
+    EXECUTE_ERROR_TABLE_FULL,
+    EXECUTE_ERROR_DUPLICATE_KEY
 } ExecuteResult;
 
 typedef struct {
@@ -79,17 +80,20 @@ void close_db(Table *table);
 void pager_flush(Pager *pager, uint32_t page_num);
 
 Cursor *table_start(Table *table);
-Cursor *table_end(Table *table);
+Cursor *table_find(Table *table, uint32_t key);
 void *cursor_ptr(Cursor *cursor);
 void cursor_advance(Cursor *cursor);
 
 // btree
+NodeType get_node_type(void *node);
+void set_node_type(void *node, NodeType type);
 uint32_t *leaf_node_num_cells(void *node);
 void *leaf_node_cell(void *node, uint32_t cell_num);
 uint32_t *leaf_node_key(void *node, uint32_t cell_num);
 void *leaf_node_value(void *node, uint32_t cell_num);
 void initialize_leaf_node(void *node);
 void leaf_node_insert(Cursor *cursor, uint32_t key, Row *value);
+Cursor *leaf_node_find(Table *table, uint32_t page_num, uint32_t key);
 
 
 #endif //TOUCHSTONE_DB_H
