@@ -17,9 +17,9 @@ CommandResult execute_command(InputBuffer *input, Table *table) {
         printf("Constants:\n");
         print_constants();
         return COMMAND_SUCCESS;
-    } else if (strcmp(input->buffer, ".print_btree") == 0) {
+    } else if (strcmp(input->buffer, ".print_tree") == 0) {
         printf("Tree:\n");
-        print_leaf_node(get_page(table->pager, 0));
+        print_tree(table->pager, 0, 0);
         return COMMAND_SUCCESS;
     } else {
         debug_input(input);
